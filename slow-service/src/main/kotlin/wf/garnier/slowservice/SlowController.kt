@@ -10,9 +10,9 @@ import java.util.*
 @RestController
 class SlowController {
 
-    @GetMapping("/price")
+    @GetMapping("/length")
     fun getPrice(@RequestParam("name") name: String) =
-            Mono.just(name.length * 3)
+            Mono.just(name.length)
                     .delayElement(randomDuration())
 
     private fun randomDuration() = Duration.ofMillis(1000L + Random().nextInt(1000))

@@ -5,7 +5,7 @@ import reactor.core.publisher.Flux
 
 @RestController
 class ReservationController(val repo: ReservationRepository,
-                            val priceClient: PriceServiceClient) {
+                            val lengthClient: LengthServiceClient) {
 
     @GetMapping("/hello")
     fun sayHi(@RequestParam("name", defaultValue = "world") name: String?) = "Hello, $name !"
@@ -16,11 +16,18 @@ class ReservationController(val repo: ReservationRepository,
     @PostMapping("/reservation")
     fun addReservation(@RequestBody reservation: Reservation) = repo.save(reservation)
 
-    @GetMapping("/total")
+    @GetMapping("/stats")
     fun computeTotal() = Flux.fromIterable(repo.findAll())
-            .flatMap {
-                priceClient.getPrice(it.name)
+            .map {
+                UserWithLength(it.name)
             }
-            .toIterable()
-            .sum()
+            .flatMap {
+                val user = it
+                lengthClient.getLength(it.name)
+                        .map {
+                            user.copy(length = it)
+                        }
+            }
 }
+
+data class UserWithLength(val name: String, val length: Int = 0)
